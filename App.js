@@ -14,7 +14,25 @@ const assets = {
   }
 };
 
-const map = [[1, "", "", ""], ["", 2, "", ""], ["", "", 3, ""], [1, "", "", 4]];
+
+//temporary
+const map = [[2, '', '', ''], ['', '', '', ''], ['', '', '', ''], ['', '', '', 1]];
+
+
+
+//functions
+returnCoordinate = (length, location, n) => {
+  c = Math.floor(location / (length/n));
+
+  if(c<0 || c>=n){
+    return -1;
+  }
+  return c;
+}
+
+
+
+
 
 class Field extends React.Component{
 
@@ -32,12 +50,12 @@ class Field extends React.Component{
 
   render(){
 
-    if(typeof(this.props.field) === "number"){
+    if(typeof(this.props.field) === 'number'){
       
       return(
 
-        <View style={styles.field}>
-          <Animated.Image style={{flex: this.state.flexValue}} source={assets.jelly['shape' + this.props.field]} resizeMode="contain" ></Animated.Image>
+        <View style={styles.field} pointerEvents='none'>
+          <Animated.Image style={{flex: this.state.flexValue}} source={assets.jelly['shape' + this.props.field]} resizeMode='contain' ></Animated.Image>
         </View>
 
       )
@@ -71,9 +89,16 @@ class Column extends React.Component{
 }
 
 
+
+
+
 class Map extends Component{
   state = {
-
+    n: 4,
+    width: null,
+    height: null,
+    field1: null,
+    field2: null,
   }
 
   constructor(props){
@@ -87,9 +112,18 @@ class Map extends Component{
 
       onPanResponderGrant: (evt, gestureState) => {
 
+        let x = returnCoordinate(this.state.width, evt.nativeEvent.locationX, this.state.n);
+        let y = returnCoordinate(this.state.height, evt.nativeEvent.locationY, this.state.n);
+
+        if(x>=0 && y>=0){
+          if(typeof(map[x][y]) === 'number'){
+            this.setState({field1: [x, y]}, function () {console.log('field1 ', this.state.field1[0], this.state.field1[1]);} );
+          }
+        }
+
         /*
-        x = evt.locationX / n - 1
-        y = evt.locationY / n - 1
+        x = evt.nativeEvent.locationX / (map.width/n)
+        y = evt.nativeEvent.locationY / (map.height/n)
 
         field1 = (x, y)
 
@@ -98,10 +132,28 @@ class Map extends Component{
 
       },
       onPanResponderMove: (evt, gestureState) => {
+
+        
+        if(this.state.field1){
+
+          let x = returnCoordinate(this.state.width, evt.nativeEvent.locationX, this.state.n);
+          let y = returnCoordinate(this.state.height, evt.nativeEvent.locationY, this.state.n);
+
+          if(x>=0 && y>=0 && (this.state.field1[0] !== x || this.state.field1[1] !== y)){
+            if(typeof(map[x][y]) === 'number'){
+              this.setState({field2: [x, y]}, function () {console.log('field2 ', this.state.field2[0], this.state.field2[1]);})
+            } else{
+              this.setState({field2: null}, function () {console.log('field2 ', this.state.field2);});
+            }
+          } else{
+            this.setState({field2: null}, function () {console.log('field2 ', this.state.field2);});
+          }
+
+        }
         
         /*
-        x = evt.locationX / n - 1
-        y = evt.locationY / n - 1
+        x = evt.nativeEvent.locationX / (map.width/n)
+        y = evt.nativeEvent.locationY / (map.height/n)
 
         if a numbered and if field1 is selected send a massage to field that it has been selected temporarily
         */
@@ -109,17 +161,26 @@ class Map extends Component{
       },
       onPanResponderTerminationRequest: (evt, gestureState) => true,
       onPanResponderRelease: (evt, gestureState) => {
+
+        console.log('release');
+        this.setState({field1: null, field2: null});
+
         /*
-        x = evt.locationX / n - 1
-        y = evt.locationY / n - 1
+        x = evt.nativeEvent.locationX / (map.width/n)
+        y = evt.nativeEvent.locationY / (map.height/
+    evt.nativeEvent.locationX / (map.width/n)
 
         field2 = (x, y)
 
-        if a numbered and if field1 is selected connect field1 and field2
-        well actually some additional rules will come with connecting like no going through jelly or bridges
-        and no connectiong jelly that's side by side or not in the same row/column
+        if a numbered and if field1 is selected conn
+    evt.nativeEvent.locationX / (map.width/n) and field2
+        well actually some additional rules will com
+    evt.nativeEvent.locationX / (map.width/n)necting like no going through jelly or bridges
+        and no connectiong jelly that's side by side
+    evt.nativeEvent.locationX / (map.width/n) the same row/column
 
         for now just get the selection process right
+    evt.nativeEvent.locationX / (map.width/n)
         */
       },
       onPanResponderTerminate: (evt, gestureState) => {
@@ -130,10 +191,16 @@ class Map extends Component{
     });
   }
 
+
+  
+
+  
+
+
   render(){
     return(
 
-      <View style={styles.map} {...this.state.panResponder.panHandlers}>
+      <View style={styles.map} onLayout={(event) => this.setState({width: event.nativeEvent.layout.width, height: event.nativeEvent.layout.height})} {...this.state.panResponder.panHandlers}>
         {this.props.map.map((column, index) =>  <Column column = {column} key = {index} />)}
       </View>
 
