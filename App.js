@@ -121,15 +121,6 @@ class Map extends Component{
           }
         }
 
-        /*
-        x = evt.nativeEvent.locationX / (map.width/n)
-        y = evt.nativeEvent.locationY / (map.height/n)
-
-        field1 = (x, y)
-
-        if a numbered send a massage to field that it has been selected during the whole duration of touch
-        */
-
       },
       onPanResponderMove: (evt, gestureState) => {
 
@@ -140,23 +131,31 @@ class Map extends Component{
           let y = returnCoordinate(this.state.height, evt.nativeEvent.locationY, this.state.n);
 
           if(x>=0 && y>=0 && (this.state.field1[0] !== x || this.state.field1[1] !== y)){
-            if(typeof(map[x][y]) === 'number'){
+
+            if(this.state.field2 !== null && typeof(map[x][y]) === 'number'){
+              
+              if(this.state.field2[0] !== x || this.state.field2[1] !== y){
+
+                this.setState({field2: [x, y]});
+              
+              }
+
+            }
+
+            else if(typeof(map[x][y]) === 'number'){
               this.setState({field2: [x, y]}, function () {console.log('field2 ', this.state.field2[0], this.state.field2[1]);})
-            } else{
+            }
+            
+            else if(this.state.field2 !== null){
               this.setState({field2: null}, function () {console.log('field2 ', this.state.field2);});
             }
-          } else{
+
+          }
+          else if(this.state.field2 !== null){
             this.setState({field2: null}, function () {console.log('field2 ', this.state.field2);});
           }
 
         }
-        
-        /*
-        x = evt.nativeEvent.locationX / (map.width/n)
-        y = evt.nativeEvent.locationY / (map.height/n)
-
-        if a numbered and if field1 is selected send a massage to field that it has been selected temporarily
-        */
 
       },
       onPanResponderTerminationRequest: (evt, gestureState) => true,
@@ -165,23 +164,6 @@ class Map extends Component{
         console.log('release');
         this.setState({field1: null, field2: null});
 
-        /*
-        x = evt.nativeEvent.locationX / (map.width/n)
-        y = evt.nativeEvent.locationY / (map.height/
-    evt.nativeEvent.locationX / (map.width/n)
-
-        field2 = (x, y)
-
-        if a numbered and if field1 is selected conn
-    evt.nativeEvent.locationX / (map.width/n) and field2
-        well actually some additional rules will com
-    evt.nativeEvent.locationX / (map.width/n)necting like no going through jelly or bridges
-        and no connectiong jelly that's side by side
-    evt.nativeEvent.locationX / (map.width/n) the same row/column
-
-        for now just get the selection process right
-    evt.nativeEvent.locationX / (map.width/n)
-        */
       },
       onPanResponderTerminate: (evt, gestureState) => {
       },
@@ -191,8 +173,6 @@ class Map extends Component{
     });
   }
 
-
-  
 
   
 
