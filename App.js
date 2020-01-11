@@ -16,7 +16,7 @@ const assets = {
 
 
 //temporary
-const map = [[2, '', '', ''], ['', '', '', ''], ['', '', '', ''], ['', '', '', 1]];
+const map = [[1, '', '', ''], ['', 2, '', ''], ['', '', 3, ''], ['', '', '', 4]];
 
 
 
@@ -38,19 +38,48 @@ class Field extends React.Component{
 
   state = {
     flexValue: new Animated.Value(0.7),
-    selected: false//this.props.selected
+    selected: false,
   }
 
-  growAnimation = () => {
-    Animated.timing(this.state.flexValue, {
-      toValue: 1,
-      duration: 500,
-    }).start();
+
+  selectJelly = (select) => {
+
+    if(select){
+      Animated.timing(this.state.flexValue, {
+        toValue: 1,
+        duration: 80,
+      }).start();
+    }
+    else{
+      Animated.timing(this.state.flexValue, {
+        toValue: 0.7,
+        duration: 80,
+      }).start();
+    }
+
   }
+
+  isSelected = () => {
+
+    if((this.props.field1 || this.props.field2) && !this.state.selected){
+      this.setState({selected: true}, () => {
+        this.selectJelly(this.state.selected);
+      });
+    }
+
+    else if(!this.props.field1 && !this.props.field2 && this.state.selected){
+      this.setState({selected: false}, () => {
+        this.selectJelly(this.state.selected);
+      });
+    }
+
+  }
+
 
   render(){
 
     if(typeof(this.props.field) === 'number'){
+
       
       return(
 
@@ -71,19 +100,53 @@ class Field extends React.Component{
       
     )
   }
+
+  componentDidUpdate(){
+
+    this.isSelected();
+
+  }
+
 }
 
 
 class Column extends React.Component{
 
   render(){
-
     return(
 
       <View style={styles.column}>
-        {this.props.column.map((field, index) => <Field field = {field} key = {index} />)}
-      </View>
 
+      {this.props.column.map((field, index) => {
+
+        if(this.props.field1 !== null){
+
+          if(index === this.props.field1[1]){
+            return(
+              <Field field = {field} key = {index} field1 = {true} field2 = {false} />
+            )
+          }
+
+        }
+
+        if(this.props.field2 !== null){
+
+          if(index === this.props.field2[1]){
+            return(
+              <Field field = {field} key = {index} field1 = {false} field2 = {true} />
+            )
+          }
+
+        }
+
+        return(
+          <Field field = {field} key = {index} field1 = {false} field2 = {false} />
+        )
+
+      })}
+
+      </View>
+  
     )
   }
 }
@@ -117,7 +180,7 @@ class Map extends Component{
 
         if(x>=0 && y>=0){
           if(typeof(map[x][y]) === 'number'){
-            this.setState({field1: [x, y]}, function () {console.log('field1 ', this.state.field1[0], this.state.field1[1]);} );
+            this.setState({field1: [x, y]});
           }
         }
 
@@ -143,16 +206,16 @@ class Map extends Component{
             }
 
             else if(typeof(map[x][y]) === 'number'){
-              this.setState({field2: [x, y]}, function () {console.log('field2 ', this.state.field2[0], this.state.field2[1]);})
+              this.setState({field2: [x, y]})
             }
             
             else if(this.state.field2 !== null){
-              this.setState({field2: null}, function () {console.log('field2 ', this.state.field2);});
+              this.setState({field2: null});
             }
 
           }
           else if(this.state.field2 !== null){
-            this.setState({field2: null}, function () {console.log('field2 ', this.state.field2);});
+            this.setState({field2: null});
           }
 
         }
@@ -161,7 +224,6 @@ class Map extends Component{
       onPanResponderTerminationRequest: (evt, gestureState) => true,
       onPanResponderRelease: (evt, gestureState) => {
 
-        console.log('release');
         this.setState({field1: null, field2: null});
 
       },
@@ -178,13 +240,72 @@ class Map extends Component{
 
 
   render(){
+    
     return(
 
       <View style={styles.map} onLayout={(event) => this.setState({width: event.nativeEvent.layout.width, height: event.nativeEvent.layout.height})} {...this.state.panResponder.panHandlers}>
-        {this.props.map.map((column, index) =>  <Column column = {column} key = {index} />)}
+
+      {this.props.map.map((column, index) =>  {
+
+        //first check that this.state.field !== null
+  
+        //field1 and 2 are unset
+        if(this.state.field1 === null && this.state.field2 === null){
+          return(
+            <Column column = {column} key = {index} field1 = {this.state.field1} field2 = {this.state.field2} />
+          )
+        }
+  
+        //only field1 is set
+        if(this.state.field2 === null){
+  
+          //field1 matches with index
+          if(index === this.state.field1[0]){
+            return(
+              <Column column = {column} key = {index} field1 = {this.state.field1} field2 = {this.state.field2} />
+            )
+          }
+  
+          //field1 doesn't match with index
+          else{
+            return(
+              <Column column = {column} key = {index} field1 = {null} field2 = {this.state.field2} />
+            )
+          }
+  
+        }
+  
+        //field1 and 2 are set
+        //index matches with field1 but not with field2
+        if(index === this.state.field1[0] && index !== this.state.field2[0]){
+          return(
+            <Column column = {column} key = {index} field1 = {this.state.field1} field2 = {null} />
+          )
+        }
+        //index matches with field2 but not with field1
+        if(index === this.state.field2[0] && index !== this.state.field1[0]){
+          return(
+            <Column column = {column} key = {index} field1 = {null} field2 = {this.state.field2} />
+          )
+        }
+        //index matches with both fields
+        if(index === this.state.field1[0] && index === this.state.field2[0]){
+          return(
+            <Column column = {column} key = {index} field1 = {this.state.field1} field2 = {this.state.field2} />
+          )
+        }
+  
+        //index doesn't match with either
+        return(        
+          <Column column = {column} key = {index} field1 = {null} field2 = {null} />
+        )
+  
+      })}
+
       </View>
 
     )
+
   }
 }
 
@@ -237,7 +358,11 @@ const styles = StyleSheet.create({
 });
 
 
-//I wrote some notes in the map's panresponder to work on today
+//it seems as though the map isn't rerendering on every state change?
+//look into it
+
+//write some comments throughout the code since things are getting a bit harder to follow
+
 
 
 //
