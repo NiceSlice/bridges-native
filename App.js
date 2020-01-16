@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { StyleSheet, Text, View, Image, TouchableWithoutFeedback, Animated, PanResponder } from 'react-native';
+import { StyleSheet, Text, View, Image, TouchableOpacity, Animated, PanResponder } from 'react-native';
 import { generateMap } from './generator';
 
 
@@ -17,10 +17,7 @@ const assets = {
 };
 
 
-//temporary
-//const map = [[1, '', '', ''], ['', 2, '', ''], ['', '', 3, ''], ['', '', '', 4]];
 
-const map = generateMap(7);
 
 
 //functions
@@ -182,7 +179,7 @@ class Map extends Component{
         let y = returnCoordinate(this.state.height, evt.nativeEvent.locationY, this.state.n);
 
         if(x>=0 && y>=0){
-          if(typeof(map[x][y]) === 'number'){
+          if(typeof(this.props.map[x][y]) === 'number'){
             this.setState({field1: [x, y]});
           }
         }
@@ -198,7 +195,7 @@ class Map extends Component{
 
           if(x>=0 && y>=0 && (this.state.field1[0] !== x || this.state.field1[1] !== y)){
 
-            if(this.state.field2 !== null && typeof(map[x][y]) === 'number'){
+            if(this.state.field2 !== null && typeof(this.props.map[x][y]) === 'number'){
               
               if(this.state.field2[0] !== x || this.state.field2[1] !== y){
 
@@ -208,7 +205,7 @@ class Map extends Component{
 
             }
 
-            else if(typeof(map[x][y]) === 'number'){
+            else if(typeof(this.props.map[x][y]) === 'number'){
               this.setState({field2: [x, y]})
             }
             
@@ -311,13 +308,63 @@ class Map extends Component{
 }
 
 
+
+class SizePicker extends Component{
+  state = {
+    n: 4,
+  }
+
+  changeN = (isPlus) => {
+
+    if(isPlus && this.state.n < 10){
+      this.setState({ n: this.state.n + 1 },
+        () => { this.props.changeMapSize(this.state.n) });
+    }
+    else if(!isPlus && this.state.n > 4){
+      this.setState({ n: this.state.n - 1 },
+        () => { this.props.changeMapSize(this.state.n) });
+    }
+  }
+
+  render(){
+    return(
+
+      <View style={styles.sizePicker}>
+
+        <TouchableOpacity style={styles.sizeMinus} onPress={() => { this.changeN(false) }}>
+          <Text>-</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.sizePlus} onPress={() => { this.changeN(true) }}>
+          <Text>+</Text>
+        </TouchableOpacity>
+
+      </View>
+    
+    )
+  }
+}
+
+
 export default class App extends Component{
+  state = {
+    map: generateMap(4),
+  }
+
+  changeMapSize = (n) => {
+    this.setState({ map: generateMap(n) });
+  }
+
 
   render(){
     return(
 
       <View style={styles.app}>
-        <Map map={map}></Map>
+  
+        <Map map={this.state.map}></Map>
+
+        <SizePicker changeMapSize = {this.changeMapSize} ></SizePicker>
+  
       </View>
 
     )
@@ -356,11 +403,36 @@ const styles = StyleSheet.create({
   jelly: {
     flex: 0.7,
   },
+
+  sizePicker: {
+    margin: 15,
+    flexDirection: 'row',
+  },
+  sizePlus: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: 100,
+    width: 100,
+    backgroundColor: 'blue',
+  },
+  sizeMinus: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: 100,
+    width: 100,
+    backgroundColor: 'red',
+  },
+  
 });
 
 
+
+
 //double selection works
-//build in a generator next
+//generator works
+
+//onPress in mapSizePicker is slow or non-responding
+//jelly gets too small on bigger sized maps
 
 //write some comments throughout the code since things are getting a bit harder to follow
 
