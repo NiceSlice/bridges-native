@@ -1,5 +1,7 @@
 import React, { Component } from 'react';
 import { StyleSheet, Text, View, Image, TouchableWithoutFeedback, Animated, PanResponder } from 'react-native';
+import { generateMap } from './generator';
+
 
 const assets = {
   jelly: {
@@ -16,8 +18,9 @@ const assets = {
 
 
 //temporary
-const map = [[1, '', '', ''], ['', 2, '', ''], ['', '', 3, ''], ['', '', '', 4]];
+//const map = [[1, '', '', ''], ['', 2, '', ''], ['', '', 3, ''], ['', '', '', 4]];
 
+const map = generateMap(7);
 
 
 //functions
@@ -240,14 +243,12 @@ class Map extends Component{
 
 
   render(){
-    
+
     return(
 
       <View style={styles.map} onLayout={(event) => this.setState({width: event.nativeEvent.layout.width, height: event.nativeEvent.layout.height})} {...this.state.panResponder.panHandlers}>
 
       {this.props.map.map((column, index) =>  {
-
-        //first check that this.state.field !== null
   
         //field1 and 2 are unset
         if(this.state.field1 === null && this.state.field2 === null){
@@ -358,8 +359,8 @@ const styles = StyleSheet.create({
 });
 
 
-//it seems as though the map isn't rerendering on every state change?
-//look into it
+//double selection works
+//build in a generator next
 
 //write some comments throughout the code since things are getting a bit harder to follow
 
