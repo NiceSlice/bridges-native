@@ -94,8 +94,7 @@ class Field extends React.Component{
     //empty field
     return(
       
-      <View style={styles.field}>
-      <Text>{this.props.field}</Text>
+      <View style={styles.field} pointerEvents="none">
       </View>
       
     )
@@ -157,7 +156,6 @@ class Column extends React.Component{
 
 class Map extends Component{
   state = {
-    n: 4,
     width: null,
     height: null,
     field1: null,
@@ -175,8 +173,8 @@ class Map extends Component{
 
       onPanResponderGrant: (evt, gestureState) => {
 
-        let x = returnCoordinate(this.state.width, evt.nativeEvent.locationX, this.state.n);
-        let y = returnCoordinate(this.state.height, evt.nativeEvent.locationY, this.state.n);
+        let x = returnCoordinate(this.state.width, evt.nativeEvent.locationX, this.props.n);
+        let y = returnCoordinate(this.state.height, evt.nativeEvent.locationY, this.props.n);
 
         if(x>=0 && y>=0){
           if(typeof(this.props.map[x][y]) === 'number'){
@@ -190,8 +188,8 @@ class Map extends Component{
         
         if(this.state.field1){
 
-          let x = returnCoordinate(this.state.width, evt.nativeEvent.locationX, this.state.n);
-          let y = returnCoordinate(this.state.height, evt.nativeEvent.locationY, this.state.n);
+          let x = returnCoordinate(this.state.width, evt.nativeEvent.locationX, this.props.n);
+          let y = returnCoordinate(this.state.height, evt.nativeEvent.locationY, this.props.n);
 
           if(x>=0 && y>=0 && (this.state.field1[0] !== x || this.state.field1[1] !== y)){
 
@@ -310,9 +308,6 @@ class Map extends Component{
 
 
 class SizePicker extends Component{
-  state = {
-    n: 4,
-  }
 
   changeN = (isPlus) => {
 
@@ -331,11 +326,11 @@ class SizePicker extends Component{
 
       <View style={styles.sizePicker}>
 
-        <TouchableOpacity style={styles.sizeMinus} onPress={() => { this.changeN(false) }}>
+        <TouchableOpacity style={styles.sizePlusMinus} onPress={() => { this.props.changeN(false) }}>
           <Text>-</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.sizePlus} onPress={() => { this.changeN(true) }}>
+        <TouchableOpacity style={styles.sizePlusMinus} onPress={() => { this.props.changeN(true) }}>
           <Text>+</Text>
         </TouchableOpacity>
 
@@ -348,11 +343,24 @@ class SizePicker extends Component{
 
 export default class App extends Component{
   state = {
+    n: 4,
     map: generateMap(4),
   }
 
   changeMapSize = (n) => {
     this.setState({ map: generateMap(n) });
+  }
+
+  changeN = (isPlus) => {
+
+    if(isPlus && this.state.n < 10){
+      this.setState({ n: this.state.n + 1 },
+        () => { this.changeMapSize(this.state.n) });
+    }
+    else if(!isPlus && this.state.n > 4){
+      this.setState({ n: this.state.n - 1 },
+        () => { this.changeMapSize(this.state.n) });
+    }
   }
 
 
@@ -361,9 +369,9 @@ export default class App extends Component{
 
       <View style={styles.app}>
   
-        <Map map={this.state.map}></Map>
+        <Map map = {this.state.map} n = {this.state.n}></Map>
 
-        <SizePicker changeMapSize = {this.changeMapSize} ></SizePicker>
+        <SizePicker changeMapSize = {this.changeMapSize} changeN = {this.changeN} ></SizePicker>
   
       </View>
 
@@ -379,12 +387,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   map: {
-    height: 280,
-    width: 280,
+    height: 300,
+    width: 300,
     backgroundColor: '#dbdbdb',
-    display: 'flex',
     flexDirection: 'row',
-    borderRadius: 10,//
+    borderRadius: 10,
 
   },
   column: {
@@ -393,34 +400,22 @@ const styles = StyleSheet.create({
   },
   field: {
     flex: 1,
-    margin: 15,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  jellyPressed: {
-    flex: 1,
-  },
-  jelly: {
-    flex: 0.7,
   },
 
   sizePicker: {
     margin: 15,
     flexDirection: 'row',
   },
-  sizePlus: {
+  sizePlusMinus: {
     alignItems: 'center',
     justifyContent: 'center',
-    height: 100,
-    width: 100,
-    backgroundColor: 'blue',
-  },
-  sizeMinus: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    height: 100,
-    width: 100,
-    backgroundColor: 'red',
+    height: 70,
+    width: 70,
+    backgroundColor: '#dbdbdb',
+    margin: 10,
+    borderRadius: 10,
   },
   
 });
@@ -428,11 +423,7 @@ const styles = StyleSheet.create({
 
 
 
-//double selection works
-//generator works
 
-//onPress in mapSizePicker is slow or non-responding
-//jelly gets too small on bigger sized maps
 
 //write some comments throughout the code since things are getting a bit harder to follow
 

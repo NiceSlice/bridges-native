@@ -207,19 +207,8 @@ export function generateMap(n){
     return map;
 }
 
-/*
-function test2(){
-    console.log('function call successful');
-}
-
-export function test(){
-   console.log('export successful');
-   test2();
-}
-*/
 
 
 
-//connect with App.js
 //for functions with many arguments create an object that holds arguments they need
 //write more comments
