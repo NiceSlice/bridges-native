@@ -1,43 +1,17 @@
-function printMap(map){
-
-    let line;
-
-    for(let x in map){
-        line = '';
-        for(let y in map[x]){
-            if(map[x][y] === ''){
-                line += ' ';
-            }
-            else if(map[x][y] === 'a' || map[x][y] === 'b'){
-                line += '-';
-            } 
-            else if(map[x][y] === 'c' || map[x][y] === 'd'){
-                line += '|';
-            }
-            else{
-                line += map[x][y];
-            }
-        }
-        console.log(line);
-    }
-}
-
-
 function randomInRange(min, max){//min <= n < max
     return Math.floor(Math.random() * (max - min) + min);
 }
 
 
-function connect(xy, xy2, n, map){//connects or erases bridge between xy and xy2
+function connect(xy, xy2, n, map){//connects a bridge between xy and xy2
 
     if(xy[0] === xy2[0]){//vertical
   
         for(let y = Math.min(xy[1], xy2[1]) + 1; y < Math.max(xy[1], xy2[1]); y++){
   
-            if(n === 1){
+            if(n === 1){//single
                 map[xy[0]][y] = 'a'
-            } else if(n === 2){ map[xy[0]][y] = 'b'; }
-            else if(n === 3){ map[xy[0]][y] = ''; }//erase
+            } else if(n === 2){ map[xy[0]][y] = 'b'; }//double
         }
         
     }
@@ -49,7 +23,6 @@ function connect(xy, xy2, n, map){//connects or erases bridge between xy and xy2
             if(n === 1){
                 map[x][xy[1]] = 'c';
             } else if(n === 2){ map[x][xy[1]] = 'd'; }
-            else if(n === 3){ map[x][xy[1]] = ''; }
         }
     }
 }
@@ -191,7 +164,7 @@ export function generateMap(n){
     map[x][y] = 'F';
 
 
-    expandMap([x, y], map);//generates the rest of the map from one field
+    expandMap([x, y], map);//generates the rest of the map with field x y as a starting point
 
     
     for(let i = 0; i < n; i++){
@@ -203,7 +176,6 @@ export function generateMap(n){
 
         }
     }
-    
     return map;
 }
 

@@ -30,6 +30,51 @@ returnCoordinate = (length, location, n) => {
   return c;
 }
 
+removeBridges = (map) => {
+  let n = map.length;
+
+  let map2 = [];
+  for(let i = 0; i < n; i++){
+      map2.push([]);
+      for(let j = 0; j < n; j++){
+
+          if(typeof(map[i][j]) === 'number'){
+            map2[i].push(map[i][j]);
+          } else{
+            map2[i].push('');
+          }
+
+      }
+  }
+
+  return map2;
+}
+
+isCompatible = (x, y, x2, y2, map) => {
+
+  if(x === x2){
+
+    for(let i = Math.min(y, y2) + 1; i < Math.max(y, y2); i++){
+      if(map[x][i] !== ''){
+        return false;
+      }
+    }
+    return true;
+
+  }
+  else if(y === y2){
+
+    for(let i = Math.min(x, x2) + 1; i < Math.max(x, x2); i++){
+      if(map[i][y] !== ''){
+        return false;
+      }
+    }
+    return true;
+
+  }
+  return false;
+}
+
 
 
 
@@ -153,6 +198,21 @@ class Column extends React.Component{
 
 
 
+class Bridge extends Component{
+
+  
+
+  render(){
+    return(
+
+      <View style={[styles.bridge, this.props.bridgeStyles(2, 3)]} pointerEvents="none" ></View>
+
+    )
+  }
+}
+
+
+
 
 class Map extends Component{
   state = {
@@ -222,6 +282,12 @@ class Map extends Component{
       onPanResponderTerminationRequest: (evt, gestureState) => true,
       onPanResponderRelease: (evt, gestureState) => {
 
+        if(this.state.field1 !== null && this.state.field2 !== null){
+          if(isCompatible(this.state.field1[0], this.state.field1[1], this.state.field2[0], this.state.field2[1], this.props.visibleMap)){
+
+          }
+        }
+
         this.setState({field1: null, field2: null});
 
       },
@@ -234,6 +300,14 @@ class Map extends Component{
   }
 
 
+  bridgeStyles = (x, y) => {
+    return{
+      width: (this.state.width/this.props.n),
+      height: (this.state.height/this.props.n),
+      top: ((this.state.height/this.props.n) * y),
+      left: ((this.state.width/this.props.n) * x),
+    }
+  }
   
 
 
@@ -298,6 +372,12 @@ class Map extends Component{
   
       })}
 
+
+
+      
+      <Bridge bridgeStyles={this.bridgeStyles} ></Bridge>
+
+
       </View>
 
     )
@@ -308,18 +388,6 @@ class Map extends Component{
 
 
 class SizePicker extends Component{
-
-  changeN = (isPlus) => {
-
-    if(isPlus && this.state.n < 10){
-      this.setState({ n: this.state.n + 1 },
-        () => { this.props.changeMapSize(this.state.n) });
-    }
-    else if(!isPlus && this.state.n > 4){
-      this.setState({ n: this.state.n - 1 },
-        () => { this.props.changeMapSize(this.state.n) });
-    }
-  }
 
   render(){
     return(
@@ -344,18 +412,19 @@ class SizePicker extends Component{
 export default class App extends Component{
   state = {
     n: 4,
-    map: generateMap(4),
-  }
-
-  changeMapSize = (n) => {
-    this.setState({ map: generateMap(n) });
   }
 
   changeN = (isPlus) => {
 
     if(isPlus && this.state.n < 10){
       this.setState({ n: this.state.n + 1 },
-        () => { this.changeMapSize(this.state.n) });
+        () => {
+          this.setState({ map: generateMap(this.state.n) },
+            () => {
+              this.setState({ visibleMap: removeBridges(this.state.map) });
+            }
+          );
+        });
     }
     else if(!isPlus && this.state.n > 4){
       this.setState({ n: this.state.n - 1 },
@@ -364,14 +433,23 @@ export default class App extends Component{
   }
 
 
+  componentWillMount(){
+    this.setState({ map: generateMap(this.state.n) },
+      () => {//this doesn't end up happening before the mount
+        this.setState({ visibleMap: removeBridges(this.state.map) });
+      }
+    );
+  }
+
+
   render(){
     return(
 
       <View style={styles.app}>
   
-        <Map map = {this.state.map} n = {this.state.n}></Map>
+        <Map map = {this.state.map} visibleMap = {this.state.visibleMap} n = {this.state.n}></Map>
 
-        <SizePicker changeMapSize = {this.changeMapSize} changeN = {this.changeN} ></SizePicker>
+        <SizePicker changeN = {this.changeN} ></SizePicker>
   
       </View>
 
@@ -418,14 +496,18 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   
+  bridge: {
+    position: 'absolute',
+    backgroundColor: 'blue',
+  }
 });
 
 
 
 
 
-
 //write some comments throughout the code since things are getting a bit harder to follow
+//all code must be cleaned and bettered
 
 
 
