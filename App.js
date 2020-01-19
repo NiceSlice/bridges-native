@@ -50,30 +50,97 @@ removeBridges = (map) => {
   return map2;
 }
 
-isCompatible = (x, y, x2, y2, map) => {
+changeBridge = (x, y, x2, y2, map) => {//rename the function
+  let noneToSingle = true;
 
   if(x === x2){
 
     for(let i = Math.min(y, y2) + 1; i < Math.max(y, y2); i++){
-      if(map[x][i] !== ''){
-        return false;
+
+      if(map[x][i] === 'a'){//if single bridge make it double
+        for(let i = Math.min(y, y2) + 1; i < Math.max(y, y2); i++){
+          map[x][i] = 'b'
+        }
+        noneToSingle = false;
+        break;
+      }
+
+      else if(map[x][i] === 'b'){//if double bridge erase it
+        for(let i = Math.min(y, y2) + 1; i < Math.max(y, y2); i++){
+          map[x][i] = ''
+        }
+        noneToSingle = false;
+        break;
+      }
+
+      else if(map[x][i] !== ''){//if something else don't continue
+        noneToSingle = false;
+        break;
       }
     }
-    return true;
 
+    if(noneToSingle){//if nothing is between fields make a single bridge
+      for(let i = Math.min(y, y2) + 1; i < Math.max(y, y2); i++){
+        map[x][i] = 'a'
+      }
+    }
   }
+
   else if(y === y2){
 
     for(let i = Math.min(x, x2) + 1; i < Math.max(x, x2); i++){
-      if(map[i][y] !== ''){
-        return false;
+
+      if(map[i][y] === 'c'){
+        for(let i = Math.min(x, x2) + 1; i < Math.max(x, x2); i++){
+          map[i][y] = 'd';
+        }
+        noneToSingle = false;
+        break;
+      }
+
+      else if(map[i][y] === 'd'){
+        for(let i = Math.min(x, x2) + 1; i < Math.max(x, x2); i++){
+          map[i][y] = '';
+        }
+        noneToSingle = false;
+        break;
+      }
+
+      else if(map[i][y] !== ''){
+        noneToSingle = false;
+        break;
       }
     }
-    return true;
 
+    if(noneToSingle){
+      for(let i = Math.min(x, x2) + 1; i < Math.max(x, x2); i++){
+        map[i][y] = 'c';
+      }
+    }
   }
-  return false;
 }
+
+isCompleted = (map, map2) => {
+  let n = map.length;
+
+  for(let x = 0; x < n; x++){
+    for(let y = 0; y < n; y++){
+    
+      if(map[x][y] !== map2[x][y]){
+        return false;
+      }
+
+    }
+  } return true;
+}
+
+
+
+
+
+
+
+
 
 
 
@@ -200,12 +267,10 @@ class Column extends React.Component{
 
 class Bridge extends Component{
 
-  
-
   render(){
     return(
 
-      <View style={[styles.bridge, this.props.bridgeStyles(2, 3)]} pointerEvents="none" ></View>
+      <View style={[styles.bridge, styles[this.props.type], this.props.bridgeStyles(this.props.x, this.props.y)]} pointerEvents="none" ></View>
 
     )
   }
@@ -283,9 +348,7 @@ class Map extends Component{
       onPanResponderRelease: (evt, gestureState) => {
 
         if(this.state.field1 !== null && this.state.field2 !== null){
-          if(isCompatible(this.state.field1[0], this.state.field1[1], this.state.field2[0], this.state.field2[1], this.props.visibleMap)){
-
-          }
+          changeBridge(this.state.field1[0], this.state.field1[1], this.state.field2[0], this.state.field2[1], this.props.visibleMap);
         }
 
         this.setState({field1: null, field2: null});
@@ -309,6 +372,7 @@ class Map extends Component{
     }
   }
   
+
 
 
   render(){
@@ -372,11 +436,23 @@ class Map extends Component{
   
       })}
 
+    
 
+      {this.props.visibleMap.map((column, x) => {
 
-      
-      <Bridge bridgeStyles={this.bridgeStyles} ></Bridge>
+        return(
 
+          column.map((field, y) => {
+
+            if(typeof(field) !== 'number' && field !== ''){
+
+              return(
+                <Bridge bridgeStyles={this.bridgeStyles} x={x} y={y} key={x.toString() + y.toString()} type={field} ></Bridge>
+              )
+            }
+          })
+        )
+      })}
 
       </View>
 
@@ -412,6 +488,7 @@ class SizePicker extends Component{
 export default class App extends Component{
   state = {
     n: 4,
+    map: generateMap(4),
   }
 
   changeN = (isPlus) => {
@@ -424,25 +501,38 @@ export default class App extends Component{
               this.setState({ visibleMap: removeBridges(this.state.map) });
             }
           );
-        });
+        }
+      );
     }
     else if(!isPlus && this.state.n > 4){
       this.setState({ n: this.state.n - 1 },
-        () => { this.changeMapSize(this.state.n) });
+        () => {
+          this.setState({ map: generateMap(this.state.n) },
+            () => {
+              this.setState({ visibleMap: removeBridges(this.state.map) });
+            }
+          );
+        }
+      );
     }
   }
 
 
   componentWillMount(){
-    this.setState({ map: generateMap(this.state.n) },
-      () => {//this doesn't end up happening before the mount
-        this.setState({ visibleMap: removeBridges(this.state.map) });
-      }
-    );
+    this.setState({ visibleMap: removeBridges(this.state.map) });//not ideal
   }
 
 
   render(){
+
+    if(isCompleted(this.state.map, this.state.visibleMap)){
+      return(
+        <View>
+          <Text>You completed the game!</Text>
+        </View>
+      )
+    }
+
     return(
 
       <View style={styles.app}>
@@ -498,11 +588,35 @@ const styles = StyleSheet.create({
   
   bridge: {
     position: 'absolute',
-    backgroundColor: 'blue',
-  }
+    backgroundColor: '#bab6b6',
+  },
+  doubleBridge: {
+    position: 'absolute',
+    backgroundColor: '#474545',
+  },
+
+  a: {
+    backgroundColor: '#bab6b6',
+  },
+  b: {
+    backgroundColor: '#757171',
+  },
+  c: {
+    backgroundColor: '#bab6b6'
+  },
+  d: {
+    backgroundColor: '#757171',
+  },
+
+
+
 });
 
 
+
+
+//the game works
+//sometimes :D
 
 
 
