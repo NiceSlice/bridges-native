@@ -184,3 +184,153 @@ export function generateMap(n){
 
 //for functions with many arguments create an object that holds arguments they need
 //write more comments
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//check solution
+
+function checkEachField(map){//checks if all fields have correct number of bridges
+    for(let x = 0; x < map.length; x++){
+        for(let y = 0; y < map.length; y++){
+
+            if(typeof(map[x][y]) === 'number'){
+
+                if(map[x][y] !== assignNum(x, y, map)){
+                    return false;
+                }
+
+            }
+
+        }
+    } return true;
+}
+
+
+
+
+function findConnected2(x, y, isVertical, n, map){
+
+    if(isVertical){
+        if(map[x][y+n] === 'a' || map[x][y+n] === 'b'){
+            //there is a field
+            for(let i=y+n;; i+=n){
+                if(typeof(map[x][i]) === 'number'){
+                    return [x, i];
+                }
+            }
+        }
+        //there is no field
+        return null;
+    }
+
+    if(map[x+n] !== undefined){
+        if(map[x+n][y] === 'c' || map[x+n][y] === 'd'){
+
+            for(let i=x+n;; i+=n){
+                if(typeof(map[i][y]) === 'number'){
+                    return [i, y];
+                }
+            }
+        }
+    }
+    return null;
+}
+
+
+function findConnected(x, y, map){//returns fields that field xy is connected to
+    let fields = [];
+
+    fields.push(findConnected2(x, y, false, -1, map));//left
+    fields.push(findConnected2(x, y, false, 1, map));//right
+    fields.push(findConnected2(x, y, true, 1, map));//up
+    fields.push(findConnected2(x, y, true, -1, map));//down
+
+    return fields;
+}
+
+
+function contains(arr, arrOfarr){
+    for(let i in arrOfarr){
+        if(arrOfarr[0] === arr[0] && arrOfarr[1] === arr[1]){
+            return true;
+        }
+    } return false;
+}
+
+
+function everythingIsConnected(map){
+
+    let F; let foundFields = [];
+    for(let x = 0; x < map.length; x++){
+        for(let y = 0; y < map.length; y++){
+            if(typeof(map[x][y]) === 'number'){
+                F = [x, y];
+                break;
+            }
+
+        }
+        if(F !== undefined){
+            break;
+        }
+    }
+
+    let fields = findConnected(F[0], F[1], map);
+    foundFields.push(F);
+
+    while(fields.length > 0){
+
+        for(let i = 0; i < fields.length; i++){
+            if(fields[i] !== null && contains(fields[i], foundFields)){//if field is not yet found add it to found, run it through findConnected and then remove it
+                let result = findConnected(fields[i][0], fields[i][1], map);
+                foundFields.push(fields[i]);
+                fields.splice(i, 1); i--;
+                for(let j in result){
+                    fields.push(result[j]);
+                }
+            }
+            else{//if field is null or already found remove it
+                fields.splice(i, 1); i--;
+            }
+        }
+        
+    }
+
+    //check if foundFields includes every field on a map
+    for(let x = 0; x < map.length; x++){
+        for(let y = 0; y < map.length; y++){
+
+            if(typeof(map[x][y]) === 'number'){
+                
+                if(contains([x, y], foundFields)){
+                    return false;
+                }
+
+            }
+
+        }
+    } return true;
+}
+
+export function isCompleted(map){
+    if(!checkEachField(map)){
+        return false;
+    }
+    if(!everythingIsConnected(map)){
+        return false;
+    }
+    return true;
+}

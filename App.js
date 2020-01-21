@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
-import { StyleSheet, Text, View, Image, TouchableOpacity, Animated, PanResponder } from 'react-native';
-import { generateMap } from './generator';
+import { StyleSheet, Text, View, Image, TouchableOpacity, Animated, PanResponder, Button } from 'react-native';
+import { generateMap } from './helperFunctions';
+import { isCompleted } from './helperFunctions';
 
 
 const assets = {
@@ -119,22 +120,6 @@ changeBridge = (x, y, x2, y2, map) => {//rename the function
     }
   }
 }
-
-isCompleted = (map, map2) => {
-  let n = map.length;
-
-  for(let x = 0; x < n; x++){
-    for(let y = 0; y < n; y++){
-    
-      if(map[x][y] !== map2[x][y]){
-        return false;
-      }
-
-    }
-  } return true;
-}
-
-
 
 
 
@@ -270,7 +255,8 @@ class Bridge extends Component{
   render(){
     return(
 
-      <View style={[styles.bridge, styles[this.props.type], this.props.bridgeStyles(this.props.x, this.props.y)]} pointerEvents="none" ></View>
+      <View style={[styles.bridge, this.props.bridgeStyles(this.props.x, this.props.y), styles[this.props.type]]} pointerEvents="none" >
+      </View>
 
     )
   }
@@ -348,7 +334,7 @@ class Map extends Component{
       onPanResponderRelease: (evt, gestureState) => {
 
         if(this.state.field1 !== null && this.state.field2 !== null){
-          changeBridge(this.state.field1[0], this.state.field1[1], this.state.field2[0], this.state.field2[1], this.props.visibleMap);
+          changeBridge(this.state.field1[0], this.state.field1[1], this.state.field2[0], this.state.field2[1], this.props.map);
         }
 
         this.setState({field1: null, field2: null});
@@ -438,7 +424,7 @@ class Map extends Component{
 
     
 
-      {this.props.visibleMap.map((column, x) => {
+      {this.props.map.map((column, x) => {
 
         return(
 
@@ -458,6 +444,12 @@ class Map extends Component{
 
     )
 
+  }
+
+  componentDidUpdate(){
+    if(isCompleted(this.props.map)){
+      this.props.complete(true);
+    }
   }
 }
 
@@ -488,7 +480,8 @@ class SizePicker extends Component{
 export default class App extends Component{
   state = {
     n: 4,
-    map: generateMap(4),
+    map: removeBridges(generateMap(4)),
+    completed: false,
   }
 
   changeN = (isPlus) => {
@@ -496,39 +489,38 @@ export default class App extends Component{
     if(isPlus && this.state.n < 10){
       this.setState({ n: this.state.n + 1 },
         () => {
-          this.setState({ map: generateMap(this.state.n) },
-            () => {
-              this.setState({ visibleMap: removeBridges(this.state.map) });
-            }
-          );
+          this.setState({ map: removeBridges(generateMap(this.state.n)) });
         }
       );
     }
     else if(!isPlus && this.state.n > 4){
       this.setState({ n: this.state.n - 1 },
         () => {
-          this.setState({ map: generateMap(this.state.n) },
-            () => {
-              this.setState({ visibleMap: removeBridges(this.state.map) });
-            }
-          );
+          this.setState({ map: removeBridges(generateMap(this.state.n)) });
         }
       );
     }
   }
 
+  complete = (isCompleted) => {
+    
+    if(!isCompleted){
+      this.setState({ map: removeBridges(generateMap(this.state.n)), completed: false })
+    }
 
-  componentWillMount(){
-    this.setState({ visibleMap: removeBridges(this.state.map) });//not ideal
+    else{
+      this.setState({ completed: true });
+    }
+
   }
 
 
-  render(){
-
-    if(isCompleted(this.state.map, this.state.visibleMap)){
+  render(){console.log(this.state.completed);
+    if(this.state.completed){
       return(
-        <View>
+        <View style={styles.app}>
           <Text>You completed the game!</Text>
+          <Button title='Again?' onPress={() => { this.complete(false); }} ></Button>
         </View>
       )
     }
@@ -537,7 +529,7 @@ export default class App extends Component{
 
       <View style={styles.app}>
   
-        <Map map = {this.state.map} visibleMap = {this.state.visibleMap} n = {this.state.n}></Map>
+        <Map map = {this.state.map} n = {this.state.n} complete = {this.complete} ></Map>
 
         <SizePicker changeN = {this.changeN} ></SizePicker>
   
@@ -596,29 +588,26 @@ const styles = StyleSheet.create({
   },
 
   a: {
-    backgroundColor: '#bab6b6',
+    backgroundColor: '#8b9cc4',
   },
   b: {
-    backgroundColor: '#757171',
+    backgroundColor: '#3a4152',
   },
   c: {
-    backgroundColor: '#bab6b6'
+    backgroundColor: '#bd786f'
   },
   d: {
-    backgroundColor: '#757171',
+    backgroundColor: '#5c3b36',
   },
-
-
-
+  
 });
 
 
 
 
 //the game works
-//sometimes :D
 
-
+//no need for two versions of map anymore
 
 //write some comments throughout the code since things are getting a bit harder to follow
 //all code must be cleaned and bettered
