@@ -31,25 +31,7 @@ returnCoordinate = (length, location, n) => {
   return c;
 }
 
-removeBridges = (map) => {
-  let n = map.length;
 
-  let map2 = [];
-  for(let i = 0; i < n; i++){
-      map2.push([]);
-      for(let j = 0; j < n; j++){
-
-          if(typeof(map[i][j]) === 'number'){
-            map2[i].push(map[i][j]);
-          } else{
-            map2[i].push('');
-          }
-
-      }
-  }
-
-  return map2;
-}
 
 changeBridge = (x, y, x2, y2, map) => {//rename the function
   let noneToSingle = true;
@@ -255,7 +237,7 @@ class Bridge extends Component{
   render(){
     return(
 
-      <View style={[styles.bridge, this.props.bridgeStyles(this.props.x, this.props.y), styles[this.props.type]]} pointerEvents="none" >
+      <View style={[styles.bridge, this.props.bridgeStyles(this.props.x, this.props.y, this.props.type)]} pointerEvents="none" >
       </View>
 
     )
@@ -349,12 +331,42 @@ class Map extends Component{
   }
 
 
-  bridgeStyles = (x, y) => {
-    return{
-      width: (this.state.width/this.props.n),
-      height: (this.state.height/this.props.n),
-      top: ((this.state.height/this.props.n) * y),
-      left: ((this.state.width/this.props.n) * x),
+  bridgeStyles = (x, y, type) => {
+    if(type === 'a'){
+      return{
+        width: (this.state.width/this.props.n)/2,
+        height: (this.state.height/this.props.n),
+        top: ((this.state.height/this.props.n) * y),
+        left: ((this.state.width/this.props.n) * x) + ((this.state.width/this.props.n)/4),
+        backgroundColor: '#bab6b6',
+      }
+    }
+    if(type === 'b'){
+      return{
+        width: (this.state.width/this.props.n)/2,
+        height: (this.state.height/this.props.n),
+        top: ((this.state.height/this.props.n) * y),
+        left: ((this.state.width/this.props.n) * x) + ((this.state.width/this.props.n)/4),
+        backgroundColor: '#858181',
+      }
+    }
+    if(type === 'c'){
+      return{
+        width: (this.state.width/this.props.n),
+        height: (this.state.height/this.props.n)/2,
+        top: ((this.state.height/this.props.n) * y) + ((this.state.height/this.props.n)/4),
+        left: ((this.state.width/this.props.n) * x),
+        backgroundColor: '#bab6b6',
+      }
+    }
+    if(type === 'd'){
+      return{
+        width: (this.state.width/this.props.n),
+        height: (this.state.height/this.props.n)/2,
+        top: ((this.state.height/this.props.n) * y) + ((this.state.height/this.props.n)/4),
+        left: ((this.state.width/this.props.n) * x),
+        backgroundColor: '#858181',
+      } 
     }
   }
   
@@ -480,7 +492,7 @@ class SizePicker extends Component{
 export default class App extends Component{
   state = {
     n: 4,
-    map: removeBridges(generateMap(4)),
+    map: generateMap(4),
     completed: false,
   }
 
@@ -489,14 +501,14 @@ export default class App extends Component{
     if(isPlus && this.state.n < 10){
       this.setState({ n: this.state.n + 1 },
         () => {
-          this.setState({ map: removeBridges(generateMap(this.state.n)) });
+          this.setState({ map: generateMap(this.state.n) });
         }
       );
     }
     else if(!isPlus && this.state.n > 4){
       this.setState({ n: this.state.n - 1 },
         () => {
-          this.setState({ map: removeBridges(generateMap(this.state.n)) });
+          this.setState({ map: generateMap(this.state.n) });
         }
       );
     }
@@ -505,7 +517,7 @@ export default class App extends Component{
   complete = (isCompleted) => {
     
     if(!isCompleted){
-      this.setState({ map: removeBridges(generateMap(this.state.n)), completed: false })
+      this.setState({ map: generateMap(this.state.n), completed: false })
     }
 
     else{
@@ -515,7 +527,7 @@ export default class App extends Component{
   }
 
 
-  render(){console.log(this.state.completed);
+  render(){
     if(this.state.completed){
       return(
         <View style={styles.app}>
@@ -582,37 +594,24 @@ const styles = StyleSheet.create({
     position: 'absolute',
     backgroundColor: '#bab6b6',
   },
-  doubleBridge: {
-    position: 'absolute',
-    backgroundColor: '#474545',
-  },
-
-  a: {
-    backgroundColor: '#8b9cc4',
-  },
-  b: {
-    backgroundColor: '#3a4152',
-  },
-  c: {
-    backgroundColor: '#bd786f'
-  },
-  d: {
-    backgroundColor: '#5c3b36',
-  },
   
 });
 
 
 
 
-//the game works
 
-//no need for two versions of map anymore
-
-//write some comments throughout the code since things are getting a bit harder to follow
+//write some comments throughout the code since things are harder to follow
 //all code must be cleaned and bettered
 
 
 
-//
+//confetti on finish
+//add filter on generated maps
 //make jelly light up when it has correct number of connections
+//make jelly floaty
+//design bridges
+//add sounds
+//add menu
+//add dark mode
+//use hooks?

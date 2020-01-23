@@ -148,6 +148,26 @@ function assignNum(x, y, map){//assignes a number to field equal to the number o
 }
 
 
+removeBridges = (map) => {
+    let n = map.length;
+  
+    let map2 = [];
+    for(let i = 0; i < n; i++){
+        map2.push([]);
+        for(let j = 0; j < n; j++){
+  
+            if(typeof(map[i][j]) === 'number'){
+              map2[i].push(map[i][j]);
+            } else{
+              map2[i].push('');
+            }
+  
+        }
+    }
+  
+    return map2;
+  }
+
 
 export function generateMap(n){
 
@@ -176,7 +196,7 @@ export function generateMap(n){
 
         }
     }
-    return map;
+    return removeBridges(map);
 }
 
 
