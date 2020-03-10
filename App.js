@@ -1,5 +1,5 @@
-import React, { Component } from 'react';
-import { StyleSheet, Text, View, Image, TouchableOpacity, Animated, PanResponder, Button } from 'react-native';
+import React, { Component, useState, useEffect } from 'react';
+import { StyleSheet, Text, View, Image, TouchableOpacity, Animated, PanResponder, Button,} from 'react-native';
 import { generateMap } from './helperFunctions';
 import { isCompleted } from './helperFunctions';
 
@@ -105,14 +105,6 @@ changeBridge = (x, y, x2, y2, map) => {//rename the function
 
 
 
-
-
-
-
-
-
-
-
 class Field extends React.Component{
 
   state = {
@@ -188,18 +180,16 @@ class Field extends React.Component{
 }
 
 
-class Column extends React.Component{
 
-  render(){
-    return(
+function Column(props){
+  return(
+    <View style={styles.column}>
 
-      <View style={styles.column}>
+      {props.column.map((field, index) => {
 
-      {this.props.column.map((field, index) => {
+        if(props.field1 !== null){
 
-        if(this.props.field1 !== null){
-
-          if(index === this.props.field1[1]){
+          if(index === props.field1[1]){
             return(
               <Field field = {field} key = {index} field1 = {true} field2 = {false} />
             )
@@ -207,9 +197,9 @@ class Column extends React.Component{
 
         }
 
-        if(this.props.field2 !== null){
+        if(props.field2 !== null){
 
-          if(index === this.props.field2[1]){
+          if(index === props.field2[1]){
             return(
               <Field field = {field} key = {index} field1 = {false} field2 = {true} />
             )
@@ -224,27 +214,15 @@ class Column extends React.Component{
       })}
 
       </View>
-  
-    )
-  }
+  )
 }
 
 
-
-
-class Bridge extends Component{
-
-  render(){
-    return(
-
-      <View style={[styles.bridge, this.props.bridgeStyles(this.props.x, this.props.y, this.props.type)]} pointerEvents="none" >
-      </View>
-
-    )
-  }
+function Bridge(props){
+  return(
+    <View style={[styles.bridge, props.bridgeStyles(props.x, props.y, props.type)]} pointerEvents="none" ></View>
+  )
 }
-
-
 
 
 class Map extends Component{
@@ -466,99 +444,102 @@ class Map extends Component{
 }
 
 
+function SizePicker(props){
 
-class SizePicker extends Component{
+  return(
 
-  render(){
-    return(
+    <View style={styles.sizePicker}>
 
-      <View style={styles.sizePicker}>
+      <TouchableOpacity style={styles.sizePlusMinus} onPress={() => { props.changeN(false) }}>
+        <Text>-</Text>
+      </TouchableOpacity>
 
-        <TouchableOpacity style={styles.sizePlusMinus} onPress={() => { this.props.changeN(false) }}>
-          <Text>-</Text>
-        </TouchableOpacity>
+      <TouchableOpacity style={styles.sizePlusMinus} onPress={() => { props.changeN(true) }}>
+        <Text>+</Text>
+      </TouchableOpacity>
 
-        <TouchableOpacity style={styles.sizePlusMinus} onPress={() => { this.props.changeN(true) }}>
-          <Text>+</Text>
-        </TouchableOpacity>
-
-      </View>
-    
-    )
-  }
+    </View>
+  
+  )
 }
 
 
-export default class App extends Component{
-  state = {
-    n: 4,
-    map: generateMap(4),
-    completed: false,
-  }
+
+
+export default function App(){
+  const [n, setN] = useState(4);//define initial n
+  const [map, setMap] = useState(generateMap(4));//DRY
+  const [completed, setCompleted] = useState(false);
 
   changeN = (isPlus) => {
 
-    if(isPlus && this.state.n < 10){
-      this.setState({ n: this.state.n + 1 },
-        () => {
-          this.setState({ map: generateMap(this.state.n) });
-        }
-      );
+    if(isPlus && n < 10){//define upper limit
+      setN(n+1);
+      setMap(generateMap(n+1));//DRY
     }
-    else if(!isPlus && this.state.n > 4){
-      this.setState({ n: this.state.n - 1 },
-        () => {
-          this.setState({ map: generateMap(this.state.n) });
-        }
-      );
+    else if(!isPlus && n > 4){//define lower limit
+      setN(n-1);
+      setMap(generateMap(n-1));//DRY
     }
   }
 
   complete = (isCompleted) => {
-    
+
     if(!isCompleted){
-      this.setState({ map: generateMap(this.state.n), completed: false })
+      setMap(generateMap(n));
+      setCompleted(false);
     }
-
     else{
-      this.setState({ completed: true });
+      setCompleted(true);
     }
-
   }
 
 
-  render(){
-    if(this.state.completed){
-      return(
-        <View style={styles.app}>
-          <Text>You completed the game!</Text>
-          <Button title='Again?' onPress={() => { this.complete(false); }} ></Button>
-        </View>
-      )
-    }
 
+  if(completed){
     return(
 
       <View style={styles.app}>
-  
-        <Map map = {this.state.map} n = {this.state.n} complete = {this.complete} ></Map>
 
-        <SizePicker changeN = {this.changeN} ></SizePicker>
-  
+        <Map map = {map} n = {n} complete = {complete} ></Map>
+
+        <View style={{marginTop: 30}}>
+
+          <Text style={{margin: 10}} >You completed the game!</Text>
+          <Button title='New' onPress={() => { complete(false); }} ></Button>
+
+        </View>
+
       </View>
 
     )
   }
+  return(
+    <View style={styles.app}>
+
+      <Map map = {map} n = {n} complete = {complete} ></Map>
+
+      <SizePicker changeN = {changeN} ></SizePicker>
+
+    </View>
+  )
+  
 }
+
+
+
+
+
+
 
 const styles = StyleSheet.create({
   app: {
-    flex: 1,
     backgroundColor: '#fff',
     alignItems: 'center',
     justifyContent: 'center',
   },
   map: {
+    marginTop: 150,
     height: 300,
     width: 300,
     backgroundColor: '#dbdbdb',
@@ -578,15 +559,16 @@ const styles = StyleSheet.create({
 
   sizePicker: {
     margin: 15,
+    marginTop: 20,
     flexDirection: 'row',
   },
   sizePlusMinus: {
     alignItems: 'center',
     justifyContent: 'center',
-    height: 70,
-    width: 70,
+    height: 40,
+    width: 40,
     backgroundColor: '#dbdbdb',
-    margin: 10,
+    margin: 20,
     borderRadius: 10,
   },
   
@@ -601,17 +583,22 @@ const styles = StyleSheet.create({
 
 
 
-//write some comments throughout the code since things are harder to follow
-//all code must be cleaned and bettered
+/*
+found a bug
+
+2 d d 2
+' ' ' '
+1 c c 1
+
+returns true on is completed
+*/
 
 
 
-//confetti on finish
+
+
+
+
+
+
 //add filter on generated maps
-//make jelly light up when it has correct number of connections
-//make jelly floaty
-//design bridges
-//add sounds
-//add menu
-//add dark mode
-//use hooks?
